@@ -6,7 +6,7 @@ const mysql = require("mysql");
 
 app.use(express.static("public"));
 // konfigurasi untuk mengakses nilai formulir atau inpuran
-app.use(express.urlencoded({extended: false}));
+app.use(express.urlencoded({ extended: false }));
 
 // halaman utama akan diarahkan ke top.ejs
 app.get("/", (req, res) => {
@@ -30,7 +30,7 @@ connection.connect(function (err) {
 app.get("/index", (req, res) => {
   // menjalankan query mysql
   connection.query("SELECT * FROM items", (error, results) => {
-    console.log(results);
+    // console.log(results);
     res.render("index.ejs", { items: results });
   });
 });
@@ -43,17 +43,51 @@ app.get("/new", (req, res) => {
 // menambahkan data baru menggunakan post
 app.post("/create", (req, res) => {
   // menambahkan item
-  connection.query('INSERT INTO items(name) VALUES(?)',[req.body.itemName], 
-  (error, results) =>{
-    connection.query('SELECT * FROM items', (error, results) => {
-      res.render('index.ejs', {items: results});
-    });
-  });
+  connection.query(
+    "INSERT INTO items(name) VALUES(?)",
+    [req.body.itemName],
+    (error, results) => {
+      res.redirect("/index");
+    }
+  );
+});
 
-  // menampilkan item
-  // connection.query("SELECT * FROM items", (error, result) => {
-  //   res.render("index.ejs", { items: result });
-  // });
+// menghapus data
+app.post("/delete/:id", (req, res) => {
+  // console.log("id :");
+  connection.query(
+    "DELETE FROM items WHERE id = ?",
+    [req.params.id],
+    (error, results) => {
+      res.redirect("/index");
+    }
+  );
+});
+
+// perbarui data
+// mengambil data dahulu
+app.get("/edit/:id", (req, res) => {
+  connection.query(
+    "SELECT * FROM items WHERE id=?",
+    [req.params.id],
+    (error, results) => {
+      console.log(results);
+      res.render("edit.ejs", { item: results[0] });
+    }
+  );
+});
+
+// mengupdate data
+app.post("/update/:id", (req, res) => {
+  connection.query(
+    "UPDATE items SET name=? WHERE id=?",
+    [req.body.itemName, req.params.id],
+    (error, results) => {
+      res.redirect("/index");
+    }
+  );
+
+  
 });
 
 app.listen(3000);
